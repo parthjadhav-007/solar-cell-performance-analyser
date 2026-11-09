@@ -1,22 +1,9 @@
-# ============================================================
-#  SOLAR CELL PERFORMANCE ANALYSER
-#  Basic version: only input(), numpy and matplotlib. No functions.
-#
-#  Model used (simple single-diode model, series resistance ignored):
-#      I = Iph - I0 * (exp(V / (n * Ns * Vt)) - 1)
-#  where
-#      Iph = light generated current (depends on light intensity)
-#      I0  = diode saturation current
-#      n   = ideality factor, Ns = number of cells in series
-#      Vt  = k*T/q (thermal voltage)
-# ============================================================
-
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Physical constants
-k = 1.380649e-23      # Boltzmann constant (J/K)
-q = 1.602176634e-19   # Charge of an electron (C)
+
+k = 1.380649e-23      
+q = 1.602176634e-19   
 
 print("=" * 55)
 print("        SOLAR CELL PERFORMANCE ANALYSER")
@@ -25,7 +12,7 @@ print("Enter the values measured at standard conditions")
 print("(1000 W/m2 light and 25 C). Example values are shown.")
 print()
 
-# ---------------- INPUTS ----------------
+
 Isc = float(input("Short-circuit current Isc in A (e.g. 0.9): "))
 Voc = float(input("Open-circuit voltage Voc in V (e.g. 0.62): "))
 n = float(input("Ideality factor, between 1 and 2 (e.g. 1.3): "))
@@ -36,47 +23,47 @@ print("Now enter the conditions you want to analyse:")
 G = float(input("Light intensity in W/m2 (e.g. 1000): "))
 T = float(input("Cell temperature in degree C (e.g. 25): "))
 
-# Simple checks so the program does not crash
+
 if Isc <= 0 or Voc <= 0 or n <= 0 or Ns <= 0 or area <= 0 or G <= 0:
     print("Error: all values must be greater than zero.")
     raise SystemExit
 
-# ---------------- MAIN CALCULATION ----------------
-TK = T + 273.15                 # temperature in kelvin
-Vt = k * TK / q                 # thermal voltage
-a = n * Ns * Vt                 # combined factor used in the equation
 
-# Light increases the current, temperature changes it slightly (+0.05 % per C)
+TK = T + 273.15                 
+Vt = k * TK / q                 
+a = n * Ns * Vt                
+
+
 Iph = Isc * (G / 1000) * (1 + 0.0005 * (T - 25))
 
-# Voc falls about 2.3 mV per cell per C, and rises with the log of light
+
 Voc_now = Voc - 0.0023 * Ns * (T - 25) + a * np.log(G / 1000)
 
 if Voc_now <= 0:
     print("Error: at these conditions the open-circuit voltage is zero or less.")
     raise SystemExit
 
-# Find the saturation current so that I = 0 when V = Voc_now
+
 I0 = Iph / (np.exp(Voc_now / a) - 1)
 
-# Voltage from 0 to Voc, then current and power
+
 V = np.linspace(0, Voc_now, 500)
 I = Iph - I0 * (np.exp(V / a) - 1)
 P = V * I
 
-# Maximum power point (MPP)
+
 index = np.argmax(P)
 Vmp = V[index]
 Imp = I[index]
 Pmax = P[index]
 
-# Other quantities
-FF = Pmax / (Voc_now * Iph)             # fill factor
-Pin = G * area / 10000                  # input light power in W (cm2 -> m2)
-efficiency = Pmax / Pin * 100           # efficiency in %
-Rload = Vmp / Imp                       # load resistance at max power
 
-# ---------------- PRINT RESULTS ----------------
+FF = Pmax / (Voc_now * Iph)             
+Pin = G * area / 10000                  
+efficiency = Pmax / Pin * 100           
+Rload = Vmp / Imp                       
+
+
 print()
 print("=" * 55)
 print("RESULTS at G = ", G, "W/m2 and T = ", T, "C")
@@ -92,7 +79,7 @@ print("Input light power             : %.4f W" % Pin)
 print("Efficiency                    : %.2f %%" % efficiency)
 print("Best load resistance          : %.3f ohm" % Rload)
 
-# ---------------- GRAPH 1: I-V and P-V ----------------
+
 plt.figure("Graph 1 - I-V and P-V curves", figsize=(11, 4.5))
 
 plt.subplot(1, 2, 1)
@@ -115,7 +102,7 @@ plt.legend()
 
 plt.tight_layout()
 
-# ---------------- COMPARISON 1: DIFFERENT LIGHT INTENSITIES ----------------
+
 print()
 print("-" * 55)
 print("EFFECT OF LIGHT INTENSITY (temperature = %.1f C)" % T)
@@ -158,7 +145,7 @@ plt.grid(True)
 plt.legend()
 plt.tight_layout()
 
-# ---------------- COMPARISON 2: DIFFERENT TEMPERATURES ----------------
+
 print()
 print("-" * 55)
 print("EFFECT OF TEMPERATURE (light = %.0f W/m2)" % G)
